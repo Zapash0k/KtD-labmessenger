@@ -1,0 +1,461 @@
+﻿{
+    "info": {
+        "name": "Messenger API – Lab 2",
+        "description": "Collection for testing the Messenger API (Variant 4 – Group Chat).\nBase URL: http://localhost:5000",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:5000"
+        },
+        {
+            "key": "userId1",
+            "value": ""
+        },
+        {
+            "key": "userId2",
+            "value": ""
+        },
+        {
+            "key": "userId3",
+            "value": ""
+        },
+        {
+            "key": "directConvId",
+            "value": ""
+        },
+        {
+            "key": "groupConvId",
+            "value": ""
+        },
+        {
+            "key": "messageId",
+            "value": ""
+        }
+    ],
+    "item": [
+        {
+            "name": "Users",
+            "item": [
+                {
+                    "name": "Create User – Alice",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                                    "const json = pm.response.json();",
+                                    "pm.collectionVariables.set('userId1', json.id);",
+                                    "pm.test('Has id', () => pm.expect(json.id).to.be.a('string'));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{baseUrl}}/users",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Alice\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Create User – Bob",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                                    "pm.collectionVariables.set('userId2', pm.response.json().id);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{baseUrl}}/users",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Bob\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Create User – Carol",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                                    "pm.collectionVariables.set('userId3', pm.response.json().id);"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{baseUrl}}/users",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Carol\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Get All Users",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                    "pm.test('Is array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{baseUrl}}/users"
+                    }
+                },
+                {
+                    "name": "Get User – Alice",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{baseUrl}}/users/{{userId1}}"
+                    }
+                },
+                {
+                    "name": "Get User – Not Found (error case)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status 404', () => pm.response.to.have.status(404));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{baseUrl}}/users/nonexistent-id"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Conversations",
+            "item": [
+                {
+                    "name": "Create Direct Conversation (Alice ↔ Bob)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                                    "const json = pm.response.json();",
+                                    "pm.collectionVariables.set('directConvId', json.id);",
+                                    "pm.test('Type is Direct', () => pm.expect(json.type).to.eql('Direct'));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{baseUrl}}/conversations/direct",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"userIdA\": \"{{userId1}}\",\n  \"userIdB\": \"{{userId2}}\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Create Group Conversation (Alice, Bob, Carol)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                                    "const json = pm.response.json();",
+                                    "pm.collectionVariables.set('groupConvId', json.id);",
+                                    "pm.test('Type is Group', () => pm.expect(json.type).to.eql('Group'));",
+                                    "pm.test('3 members', () => pm.expect(json.members.length).to.eql(3));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{baseUrl}}/conversations/group",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Lab Friends\",\n  \"memberIds\": [\"{{userId1}}\", \"{{userId2}}\", \"{{userId3}}\"]\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Get Conversation by ID",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{baseUrl}}/conversations/{{groupConvId}}"
+                    }
+                },
+                {
+                    "name": "Get Alice's Conversations",
+                    "request": {
+                        "method": "GET",
+                        "url": "{{baseUrl}}/conversations/user/{{userId1}}"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Messages",
+            "item": [
+                {
+                    "name": "Send Message to Direct (Alice → Bob)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{baseUrl}}/messages",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"conversationId\": \"{{directConvId}}\",\n  \"senderId\": \"{{userId1}}\",\n  \"text\": \"Hello, Bob!\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Send Group Message (Alice → Group)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status 202', () => pm.response.to.have.status(202));",
+                                    "const json = pm.response.json();",
+                                    "pm.collectionVariables.set('messageId', json.id);",
+                                    "pm.test('Status is Sent', () => pm.expect(json.status).to.eql('Sent'));",
+                                    "pm.test('2 delivery records', () => pm.expect(json.deliveryRecords.length).to.eql(2));",
+                                    "pm.test('All Pending', () => json.deliveryRecords.forEach(dr => pm.expect(dr.status).to.eql('Pending')));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{baseUrl}}/messages",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"conversationId\": \"{{groupConvId}}\",\n  \"senderId\": \"{{userId1}}\",\n  \"text\": \"Hello, group chat!\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Send Empty Message (error case)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{baseUrl}}/messages",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"conversationId\": \"{{groupConvId}}\",\n  \"senderId\": \"{{userId1}}\",\n  \"text\": \"\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Acknowledge Delivery – Bob",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                    "pm.test('Status PartiallyDelivered', () => pm.expect(pm.response.json().status).to.eql('PartiallyDelivered'));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{baseUrl}}/messages/{{messageId}}/deliver",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"messageId\": \"{{messageId}}\",\n  \"recipientId\": \"{{userId2}}\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Acknowledge Delivery – Carol",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                    "pm.test('Status Delivered', () => pm.expect(pm.response.json().status).to.eql('Delivered'));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{baseUrl}}/messages/{{messageId}}/deliver",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"messageId\": \"{{messageId}}\",\n  \"recipientId\": \"{{userId3}}\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Mark as Read – Bob",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status PartiallyRead', () => pm.expect(pm.response.json().status).to.eql('PartiallyRead'));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{baseUrl}}/messages/{{messageId}}/read",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"messageId\": \"{{messageId}}\",\n  \"recipientId\": \"{{userId2}}\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Mark as Read – Carol",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status Read', () => pm.expect(pm.response.json().status).to.eql('Read'));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": "{{baseUrl}}/messages/{{messageId}}/read",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"messageId\": \"{{messageId}}\",\n  \"recipientId\": \"{{userId3}}\"\n}"
+                        }
+                    }
+                },
+                {
+                    "name": "Get Group Message History",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                                    "pm.test('Has messages', () => pm.expect(pm.response.json().length).to.be.above(0));"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "url": "{{baseUrl}}/conversations/{{groupConvId}}/messages"
+                    }
+                }
+            ]
+        }
+    ]
+}
